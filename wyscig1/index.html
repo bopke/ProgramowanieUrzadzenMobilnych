@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Wyscig1</title>
+</head>
+<body>
+<canvas id="canvas" width="800" height="600" style="border:1px solid #000000"></canvas>
+<div>
+    strzałki lewo/prawo - ruch
+</div>
+<script>
+    const canvas = document.getElementById("canvas")
+    const ctx = canvas.getContext("2d")
+    const playerHeight = 100
+    const playerWidth = 100
+    const playerSpeed = 15
+    let playerX = (canvas.width - playerWidth) / 2
+    let rightPressed = false
+    let leftPressed = false
+    let spacePressed = false
+    let lastFrameTime = null
+    let lineWidth = 30
+    let lineHeight = 30
+    let linesProgress = 0
+    const linesProgressDelta = 5
+
+    const drawSurroundings = function () {
+        ctx.beginPath()
+        ctx.rect(0, 0, canvas.width, canvas.height)
+        ctx.fillStyle = "#00FF00"
+        ctx.fill()
+        ctx.closePath()
+    }
+
+    const drawPath = function () {
+        ctx.beginPath()
+        ctx.rect(canvas.width * 0.25, 0, canvas.width * 0.5, canvas.height)
+        ctx.fillStyle = "#333333"
+        ctx.fill()
+        ctx.closePath()
+        for (let i = 0; ; i++) {
+            ctx.beginPath()
+            ctx.rect(canvas.width * 0.5 - lineWidth * 0.5, linesProgress + i * 60, lineWidth, lineHeight)
+            if (linesProgress + i * 60 > canvas.height) {
+                break
+            }
+            ctx.fillStyle = "#aaaaaa"
+            ctx.fill()
+            ctx.closePath()
+        }
+        linesProgress += linesProgressDelta
+        if (linesProgress > canvas.height) {
+            linesProgress -= canvas.height
+        }
+    }
+
+    const keyDownHandler = function (e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = true
+        } else if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = true
+        } else if (e.key === ' ') {
+            spacePressed = true
+        }
+    }
+
+    const keyUpHandler = function (e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = false
+        } else if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = false
+        } else if (e.key === ' ') {
+            spacePressed = false
+        }
+    }
+
+    const drawPlayer = function () {
+        ctx.beginPath()
+        ctx.rect(playerX, canvas.height - playerHeight - 50, playerWidth, playerHeight)
+        ctx.fillStyle = "#0000FF"
+        ctx.fill()
+        ctx.closePath()
+    }
+
+
+    const draw = function (timestamp) {
+        if (lastFrameTime && timestamp - lastFrameTime <= 1) {
+            requestAnimationFrame(draw)
+            return
+        }
+        lastFrameTime = timestamp
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        drawSurroundings()
+        drawPath()
+        drawPlayer()
+
+        if (rightPressed && playerX < (canvas.width * 0.75) - playerWidth) {
+            playerX += playerSpeed
+        } else if (leftPressed && playerX > canvas.width * 0.25) {
+            playerX -= playerSpeed
+        }
+
+        requestAnimationFrame(draw)
+    }
+
+    document.addEventListener("keydown", keyDownHandler, false)
+    document.addEventListener("keyup", keyUpHandler, false)
+
+    draw()
+</script>
+</body>
+</html>
