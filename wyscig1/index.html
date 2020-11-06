@@ -20,8 +20,9 @@
     let leftPressed = false
     let spacePressed = false
     let lastFrameTime = null
-    let lineWidth = 30
-    let lineHeight = 30
+    let lineWidth = 15
+    let lineHeight = 80
+    let lineFieldHeight = 100
     let linesProgress = 0
     const linesProgressDelta = 5
 
@@ -41,8 +42,8 @@
         ctx.closePath()
         for (let i = 0; ; i++) {
             ctx.beginPath()
-            ctx.rect(canvas.width * 0.5 - lineWidth * 0.5, linesProgress + i * 60, lineWidth, lineHeight)
-            if (linesProgress + i * 60 > canvas.height) {
+            ctx.rect(canvas.width * 0.5 - lineWidth * 0.5, linesProgress + (i - 1) * lineFieldHeight, lineWidth, lineHeight)
+            if (linesProgress + i * 60 - lineFieldHeight > canvas.height) {
                 break
             }
             ctx.fillStyle = "#aaaaaa"
@@ -50,7 +51,7 @@
             ctx.closePath()
         }
         linesProgress += linesProgressDelta
-        if (linesProgress > canvas.height) {
+        if (linesProgress > lineFieldHeight) {
             linesProgress -= canvas.height
         }
     }
