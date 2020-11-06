@@ -35,18 +35,40 @@
     const enemyHeight = 30
     const enemySpawnInterval = 1500
     let enemies = []
+    const collectibleWidth = 120
+    const collectibleHeight = 120
+    const collectibleSpawnInterval = 2000
+    let collectibles = []
+
 
     const detectCollision = function () {
         let hasCollided = false
         enemies.forEach(enemy => {
             if (enemy['x'] < playerX + playerWidth &&
-                enemy['x'] + playerWidth > playerX &&
-                enemy['y'] < playerY + enemyHeight &&
+                enemy['x'] + enemyWidth > playerX &&
+                enemy['y'] < playerY + playerHeight &&
                 enemy['y'] + enemyHeight > playerY) {
                 hasCollided = true
             }
         })
         return hasCollided
+    }
+
+    const detectCollectibleCollection = function () {
+        let hasCollected = false
+        let newCollectibles = []
+        collectibles.forEach(collectible => {
+            if (collectible['x'] < playerX + playerWidth &&
+                collectible['x'] + collectibleWidth > playerX &&
+                collectible['y'] < playerY + playerHeight &&
+                collectible['y'] + collectibleHeight > playerY) {
+                hasCollected = true
+            } else {
+                newCollectibles.push(collectible)
+            }
+        })
+        collectibles = newCollectibles
+        return hasCollected
     }
 
     const drawSurroundings = function () {
@@ -108,6 +130,11 @@
         enemies.push({'x': newEnemyX, 'y': -30})
     }
 
+    const createCollectible = function () {
+        const newCollectible = canvas.width * 0.25 + Math.floor(Math.random() * (canvas.width * 0.5 - collectibleWidth))
+        collectibles.push({'x': newCollectible, 'y': -30})
+    }
+
     const drawEnemies = function () {
         let newEnemies = []
         enemies.forEach(enemy => {
@@ -122,6 +149,22 @@
             }
         })
         enemies = newEnemies
+    }
+
+    const drawCollectibles = function () {
+        let newCollectibles = []
+        collectibles.forEach(collectible => {
+            collectible['y'] += speed
+            ctx.beginPath()
+            ctx.rect(collectible['x'], collectible['y'], collectibleWidth, collectibleHeight)
+            ctx.fillStyle = "#ffc500"
+            ctx.fill()
+            ctx.closePath()
+            if (collectible['y'] < canvas.height) {
+                newCollectibles.push(collectible)
+            }
+        })
+        collectibles = newCollectibles
     }
 
     const keyDownHandler = function (e) {
@@ -185,8 +228,11 @@
         drawPath()
         drawWhitereds(0.25)
         drawWhitereds(0.75)
+        drawCollectibles()
         drawEnemies()
         drawPlayer()
+
+        detectCollectibleCollection()
 
         if (detectCollision()) {
             alert("Twoje jest przegranko :(")
@@ -208,6 +254,7 @@
     draw()
 
     setInterval(createEnemy, enemySpawnInterval)
+    setInterval(createCollectible, collectibleSpawnInterval)
 </script>
 </body>
 </html>
