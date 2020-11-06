@@ -23,8 +23,12 @@
     const lineWidth = 15
     const lineHeight = 80
     const lineFieldHeight = 100
-    let linesProgress = 0
-    const linesProgressDelta = 5
+    const whiteredLineWidth = 30
+    const whiteredLineHeight = 50
+    const whiteredLineFieldHeight = 50
+    let whiteredLineProgress = 0
+    let lineProgress = 0
+    const speed = 5
 
     const drawSurroundings = function () {
         ctx.beginPath()
@@ -34,6 +38,30 @@
         ctx.closePath()
     }
 
+    const drawWhitereds = function (pos) {
+        let white = true
+        for (let i = 0; ; i++) {
+            ctx.beginPath()
+            ctx.rect(canvas.width * pos - whiteredLineWidth * 0.5, whiteredLineProgress + (i - 2) * whiteredLineFieldHeight, whiteredLineWidth, whiteredLineHeight)
+            if (whiteredLineProgress + (i - 2) * whiteredLineFieldHeight > canvas.height) {
+                break
+            }
+            if (white) {
+                ctx.fillStyle = "#ffffff"
+            } else {
+                ctx.fillStyle = "#ff0000"
+            }
+            white = !white
+            ctx.fill()
+            ctx.closePath()
+        }
+        whiteredLineProgress += speed * 0.5
+        if (whiteredLineProgress > whiteredLineFieldHeight * 2) {
+            whiteredLineProgress -= canvas.height
+        }
+    }
+
+
     const drawPath = function () {
         ctx.beginPath()
         ctx.rect(canvas.width * 0.25, 0, canvas.width * 0.5, canvas.height)
@@ -42,17 +70,17 @@
         ctx.closePath()
         for (let i = 0; ; i++) {
             ctx.beginPath()
-            ctx.rect(canvas.width * 0.5 - lineWidth * 0.5, linesProgress + (i - 1) * lineFieldHeight, lineWidth, lineHeight)
-            if (linesProgress + i * 60 - lineFieldHeight > canvas.height) {
+            ctx.rect(canvas.width * 0.5 - lineWidth * 0.5, lineProgress + (i - 1) * lineFieldHeight, lineWidth, lineHeight)
+            if (lineProgress + i * lineFieldHeight - lineFieldHeight > canvas.height) {
                 break
             }
             ctx.fillStyle = "#aaaaaa"
             ctx.fill()
             ctx.closePath()
         }
-        linesProgress += linesProgressDelta
-        if (linesProgress > lineFieldHeight) {
-            linesProgress -= canvas.height
+        lineProgress += speed
+        if (lineProgress > lineFieldHeight) {
+            lineProgress -= canvas.height
         }
     }
 
@@ -95,6 +123,8 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         drawSurroundings()
         drawPath()
+        drawWhitereds(0.25)
+        drawWhitereds(0.75)
         drawPlayer()
 
         if (rightPressed && playerX < (canvas.width * 0.75) - playerWidth) {
