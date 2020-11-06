@@ -16,6 +16,7 @@
     const playerWidth = 50
     const playerSpeed = 10
     let playerX = (canvas.width - playerWidth) / 2
+    let playerY = canvas.height - playerHeight - 50
     let rightPressed = false
     let leftPressed = false
     let spacePressed = false
@@ -30,6 +31,23 @@
     let lineProgress = 0
     const speed = 5
     const wheelRadius = 10
+    const enemyWidth = 100
+    const enemyHeight = 30
+    const enemySpawnInterval = 1500
+    let enemies = []
+
+    const detectCollision = function () {
+        let hasCollided = false
+        enemies.forEach(enemy => {
+            if (enemy['x'] < playerX + playerWidth &&
+                enemy['x'] + playerWidth > playerX &&
+                enemy['y'] < playerY + enemyHeight &&
+                enemy['y'] + enemyHeight > playerY) {
+                hasCollided = true
+            }
+        })
+        return hasCollided
+    }
 
     const drawSurroundings = function () {
         ctx.beginPath()
@@ -85,6 +103,27 @@
         }
     }
 
+    const createEnemy = function () {
+        const newEnemyX = canvas.width * 0.25 + Math.floor(Math.random() * (canvas.width * 0.5 - enemyWidth))
+        enemies.push({'x': newEnemyX, 'y': -30})
+    }
+
+    const drawEnemies = function () {
+        let newEnemies = []
+        enemies.forEach(enemy => {
+            enemy['y'] += speed
+            ctx.beginPath()
+            ctx.rect(enemy['x'], enemy['y'], enemyWidth, enemyHeight)
+            ctx.fillStyle = "#774b00"
+            ctx.fill()
+            ctx.closePath()
+            if (enemy['y'] < canvas.height) {
+                newEnemies.push(enemy)
+            }
+        })
+        enemies = newEnemies
+    }
+
     const keyDownHandler = function (e) {
         if (e.key === "Right" || e.key === "ArrowRight") {
             rightPressed = true
@@ -107,22 +146,22 @@
 
     const drawPlayer = function () {
         ctx.beginPath()
-        ctx.arc(playerX + wheelRadius * 0.5, canvas.height - playerHeight - 50 + wheelRadius, wheelRadius, 0, Math.PI * 2, false)
+        ctx.arc(playerX + wheelRadius * 0.5, playerY + wheelRadius, wheelRadius, 0, Math.PI * 2, false)
         ctx.fillStyle = "#000000"
         ctx.fill()
         ctx.closePath()
         ctx.beginPath()
-        ctx.arc(playerX + playerWidth - wheelRadius * 0.5, canvas.height - playerHeight - 50 + wheelRadius, wheelRadius, 0, Math.PI * 2, false)
+        ctx.arc(playerX + playerWidth - wheelRadius * 0.5, playerY + wheelRadius, wheelRadius, 0, Math.PI * 2, false)
         ctx.fillStyle = "#000000"
         ctx.fill()
         ctx.closePath()
         ctx.beginPath()
-        ctx.arc(playerX + wheelRadius * 0.5, canvas.height - playerHeight + wheelRadius, wheelRadius, 0, Math.PI * 2, false)
+        ctx.arc(playerX + wheelRadius * 0.5, playerY + playerHeight - wheelRadius, wheelRadius, 0, Math.PI * 2, false)
         ctx.fillStyle = "#000000"
         ctx.fill()
         ctx.closePath()
         ctx.beginPath()
-        ctx.arc(playerX + playerWidth - wheelRadius * 0.5, canvas.height - playerHeight + wheelRadius, wheelRadius, 0, Math.PI * 2, false)
+        ctx.arc(playerX + playerWidth - wheelRadius * 0.5, playerY + playerHeight - wheelRadius, wheelRadius, 0, Math.PI * 2, false)
         ctx.fillStyle = "#000000"
         ctx.fill()
         ctx.closePath()
@@ -146,7 +185,13 @@
         drawPath()
         drawWhitereds(0.25)
         drawWhitereds(0.75)
+        drawEnemies()
         drawPlayer()
+
+        if (detectCollision()) {
+            alert("Twoje jest przegranko :(")
+            return
+        }
 
         if (rightPressed && playerX < (canvas.width * 0.75) - playerWidth) {
             playerX += playerSpeed
@@ -161,6 +206,8 @@
     document.addEventListener("keyup", keyUpHandler, false)
 
     draw()
+
+    setInterval(createEnemy, enemySpawnInterval)
 </script>
 </body>
 </html>
