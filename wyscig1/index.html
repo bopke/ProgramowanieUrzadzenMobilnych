@@ -39,6 +39,9 @@
     const collectibleHeight = 120
     const collectibleSpawnInterval = 2000
     let collectibles = []
+    const scoreX = 10
+    const scoreY = 30
+    let score = 0
 
 
     const detectCollision = function () {
@@ -215,6 +218,10 @@
         ctx.closePath()
     }
 
+    const drawScore = function () {
+        ctx.font = "30px Arial"
+        ctx.fillText("Wynik: " + score, scoreX, scoreY)
+    }
 
     const draw = function (timestamp) {
         if (lastFrameTime && timestamp - lastFrameTime <= 1) {
@@ -232,7 +239,11 @@
         drawEnemies()
         drawPlayer()
 
-        detectCollectibleCollection()
+        if (detectCollectibleCollection()) {
+            score += 1
+        }
+
+        drawScore()
 
         if (detectCollision()) {
             alert("Twoje jest przegranko :(")
