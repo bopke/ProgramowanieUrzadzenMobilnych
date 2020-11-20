@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Wyscig3</title>
+</head>
+<body>
+<canvas id="canvas" width="800" height="600" style="border:1px solid #000000"></canvas>
+<div>
+    strzałki lewo/prawo - ruch<br/>
+    spacja - strzał
+</div>
+<script>
+    const canvas = document.getElementById("canvas")
+    const ctx = canvas.getContext("2d")
+    const playerHeight = 70
+    const playerWidth = 50
+    const playerSpeed = 10
+    let playerX = (canvas.width - playerWidth) / 2
+    let playerY = canvas.height - playerHeight - 50
+    let rightPressed = false
+    let leftPressed = false
+    let upPressed = false
+    let downPressed = false
+    let spacePressed = false
+    let lastFrameTime = null
+    const lineWidth = 15
+    const lineHeight = 80
+    const lineFieldHeight = 100
+    const whiteredLineWidth = 30
+    const whiteredLineHeight = 50
+    const whiteredLineFieldHeight = 50
+    let whiteredLineProgress = 0
+    let lineProgress = 0
+    const fasterSpeed = 10
+    const slowerSpeed = 3
+    const normalSpeed = 5
+    let speed = normalSpeed
+    const wheelRadius = 10
+    const enemyWidth = 100
+    const enemyHeight = 30
+    const enemySpawnInterval = 1500
+    let enemies = []
+    const collectibleWidth = 120
+    const collectibleHeight = 120
+    const collectibleSpawnInterval = 2000
+    let collectibles = []
+    const scoreX = 10
+    const scoreY = 30
+    let score = 0
+    let shots = []
+    const shotHeight = 10
+    const shotWidth = 10
+    const shotSpeed = 10
+    let lastShotTime = 0
+
+    const shoot = function () {
+        shots.push({"x": playerX + playerWidth * 0.5, "y": playerY + shotSpeed})
+    }
+
+    const detectPlayerCollision = function () {
+        let hasCollided = false
+        enemies.forEach(enemy => {
+            if (enemy['x'] < playerX + playerWidth &&
+                enemy['x'] + enemyWidth > playerX &&
+                enemy['y'] < playerY + playerHeight &&
+                enemy['y'] + enemyHeight > playerY) {
+                hasCollided = true
+            }
+        })
+        return hasCollided
+    }
+
+    const detectShotCollision = function () {
+        let newEnemies = []
+        enemies.forEach(enemy => {
+            let collided = false
+            shots.forEach(shot => {
+                if (enemy['x'] < shot['x'] + shotWidth &&
+                    enemy['x'] + enemyWidth > shot['x'] &&
+                    enemy['y'] < shot['y'] + shotHeight &&
+                    enemy['y'] + enemyHeight > shot['y']) {
+                    collided = true
+                }
+            })
+            if (!collided) {
+                newEnemies.push(enemy)
+            }
+        })
+        enemies = newEnemies
+    }
+
+    const detectCollectibleCollection = function () {
+        let hasCollected = false
+        let newCollectibles = []
+        collectibles.forEach(collectible => {
+            if (collectible['x'] < playerX + playerWidth &&
+                collectible['x'] + collectibleWidth > playerX &&
+                collectible['y'] < playerY + playerHeight &&
+                collectible['y'] + collectibleHeight > playerY) {
+                hasCollected = true
+            } else {
+                newCollectibles.push(collectible)
+            }
+        })
+        collectibles = newCollectibles
+        return hasCollected
+    }
+
+    const drawSurroundings = function () {
+        ctx.beginPath()
+        ctx.rect(0, 0, canvas.width, canvas.height)
+        ctx.fillStyle = "#00FF00"
+        ctx.fill()
+        ctx.closePath()
+    }
+
+    const drawWhitereds = function (pos) {
+        let white = true
+        for (let i = 0; ; i++) {
+            ctx.beginPath()
+            ctx.rect(canvas.width * pos - whiteredLineWidth * 0.5, whiteredLineProgress + (i - 2) * whiteredLineFieldHeight, whiteredLineWidth, whiteredLineHeight)
+            if (whiteredLineProgress + (i - 2) * whiteredLineFieldHeight > canvas.height) {
+                break
+            }
+            if (white) {
+                ctx.fillStyle = "#ffffff"
+            } else {
+                ctx.fillStyle = "#ff0000"
+            }
+            white = !white
+            ctx.fill()
+            ctx.closePath()
+        }
+        whiteredLineProgress += speed * 0.5
+        if (whiteredLineProgress > whiteredLineFieldHeight * 2) {
+            whiteredLineProgress -= canvas.height
+        }
+    }
+
+
+    const drawPath = function () {
+        ctx.beginPath()
+        ctx.rect(canvas.width * 0.25, 0, canvas.width * 0.5, canvas.height)
+        ctx.fillStyle = "#333333"
+        ctx.fill()
+        ctx.closePath()
+        for (let i = 0; ; i++) {
+            ctx.beginPath()
+            ctx.rect(canvas.width * 0.5 - lineWidth * 0.5, lineProgress + (i - 1) * lineFieldHeight, lineWidth, lineHeight)
+            if (lineProgress + i * lineFieldHeight - lineFieldHeight > canvas.height) {
+                break
+            }
+            ctx.fillStyle = "#aaaaaa"
+            ctx.fill()
+            ctx.closePath()
+        }
+        lineProgress += speed
+        if (lineProgress > lineFieldHeight) {
+            lineProgress -= canvas.height
+        }
+    }
+
+    const createEnemy = function () {
+        const newEnemyX = canvas.width * 0.25 + Math.floor(Math.random() * (canvas.width * 0.5 - enemyWidth))
+        enemies.push({'x': newEnemyX, 'y': -30})
+    }
+
+    const createCollectible = function () {
+        const newCollectible = canvas.width * 0.25 + Math.floor(Math.random() * (canvas.width * 0.5 - collectibleWidth))
+        collectibles.push({'x': newCollectible, 'y': -30})
+    }
+
+    const drawEnemies = function () {
+        let newEnemies = []
+        enemies.forEach(enemy => {
+            enemy['y'] += speed
+            ctx.beginPath()
+            ctx.rect(enemy['x'], enemy['y'], enemyWidth, enemyHeight)
+            ctx.fillStyle = "#774b00"
+            ctx.fill()
+            ctx.closePath()
+            if (enemy['y'] < canvas.height) {
+                newEnemies.push(enemy)
+            }
+        })
+        enemies = newEnemies
+    }
+
+    const drawShots = function () {
+        let newShots = []
+        shots.forEach(shot => {
+            shot['y'] -= shotSpeed
+            ctx.beginPath()
+            ctx.rect(shot['x'], shot['y'], shotWidth, shotHeight)
+            ctx.fillStyle = "#ff56c3"
+            ctx.fill()
+            ctx.closePath()
+            if (shot['y'] > 0) {
+                newShots.push(shot)
+            }
+        })
+        shots = newShots
+    }
+
+    const drawCollectibles = function () {
+        let newCollectibles = []
+        collectibles.forEach(collectible => {
+            collectible['y'] += speed
+            ctx.beginPath()
+            ctx.rect(collectible['x'], collectible['y'], collectibleWidth, collectibleHeight)
+            ctx.fillStyle = "#ffc500"
+            ctx.fill()
+            ctx.closePath()
+            if (collectible['y'] < canvas.height) {
+                newCollectibles.push(collectible)
+            }
+        })
+        collectibles = newCollectibles
+    }
+
+    const keyDownHandler = function (e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = true
+        }
+        if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = true
+        }
+        if (e.key === "Up" || e.key === "ArrowUp") {
+            upPressed = true
+        }
+        if (e.key === "Down" || e.key === "ArrowDown") {
+            downPressed = true
+        }
+        if (e.key === ' ') {
+            spacePressed = true
+        }
+    }
+
+    const keyUpHandler = function (e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = false
+        }
+        if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = false
+        }
+        if (e.key === "Up" || e.key === "ArrowUp") {
+            upPressed = false
+        }
+        if (e.key === "Down" || e.key === "ArrowDown") {
+            downPressed = false
+        }
+        if (e.key === ' ') {
+            spacePressed = false
+        }
+    }
+
+    const drawPlayer = function () {
+        ctx.beginPath()
+        ctx.arc(playerX + wheelRadius * 0.5, playerY + wheelRadius, wheelRadius, 0, Math.PI * 2, false)
+        ctx.fillStyle = "#000000"
+        ctx.fill()
+        ctx.closePath()
+        ctx.beginPath()
+        ctx.arc(playerX + playerWidth - wheelRadius * 0.5, playerY + wheelRadius, wheelRadius, 0, Math.PI * 2, false)
+        ctx.fillStyle = "#000000"
+        ctx.fill()
+        ctx.closePath()
+        ctx.beginPath()
+        ctx.arc(playerX + wheelRadius * 0.5, playerY + playerHeight - wheelRadius, wheelRadius, 0, Math.PI * 2, false)
+        ctx.fillStyle = "#000000"
+        ctx.fill()
+        ctx.closePath()
+        ctx.beginPath()
+        ctx.arc(playerX + playerWidth - wheelRadius * 0.5, playerY + playerHeight - wheelRadius, wheelRadius, 0, Math.PI * 2, false)
+        ctx.fillStyle = "#000000"
+        ctx.fill()
+        ctx.closePath()
+        ctx.beginPath()
+        ctx.rect(playerX, canvas.height - playerHeight - 50, playerWidth, playerHeight)
+        ctx.fillStyle = "#0000FF"
+        ctx.fill()
+        ctx.closePath()
+    }
+
+    const drawScore = function () {
+        ctx.font = "30px Arial"
+        ctx.fillText("Wynik: " + score, scoreX, scoreY)
+    }
+
+    const draw = function (timestamp) {
+        if (lastFrameTime && timestamp - lastFrameTime <= 1) {
+            requestAnimationFrame(draw)
+            return
+        }
+        lastFrameTime = timestamp
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        drawSurroundings()
+        drawPath()
+        drawWhitereds(0.25)
+        drawWhitereds(0.75)
+        drawCollectibles()
+        drawEnemies()
+        drawShots()
+        drawPlayer()
+
+        if (detectCollectibleCollection()) {
+            score += 1
+        }
+
+
+        drawScore()
+
+        detectShotCollision()
+
+        if (detectPlayerCollision()) {
+            alert("Twoje jest przegranko :(")
+            return
+        }
+
+        if (rightPressed && playerX < (canvas.width * 0.75) - playerWidth) {
+            playerX += playerSpeed
+        } else if (leftPressed && playerX > canvas.width * 0.25) {
+            playerX -= playerSpeed
+        }
+        if (spacePressed) {
+            console.log(lastShotTime - timestamp)
+            if (timestamp - lastShotTime > 1000) {
+                lastShotTime = timestamp
+                shoot()
+            }
+        }
+        if (upPressed && !downPressed) {
+            speed = fasterSpeed
+        } else if (!upPressed && downPressed) {
+            speed = slowerSpeed
+        } else {
+            speed = normalSpeed
+        }
+
+        requestAnimationFrame(draw)
+    }
+
+    document.addEventListener("keydown", keyDownHandler, false)
+    document.addEventListener("keyup", keyUpHandler, false)
+
+    draw()
+
+    setInterval(createEnemy, enemySpawnInterval)
+    setInterval(createCollectible, collectibleSpawnInterval)
+</script>
+</body>
+</html>
