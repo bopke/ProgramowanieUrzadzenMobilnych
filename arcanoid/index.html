@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+
+    <title>Arcanoid</title>
+
+    <style>
+        * {
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+<canvas id="canvas" width="800" height="600" style="border:1px solid #000000"></canvas>
+<div>
+    strzałki lewo/prawo - ruch
+</div>
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const rowCount = 5;
+    const columnCount = 10;
+    const blockHeight = 25;
+    const blockWidth = 70;
+
+    const ballRadius = 7;
+    let ballX = 300;
+    let ballY = 300;
+    let verticalSpeed = -2;
+    let horizontalSpeed = 2;
+    let ballAngle = 0;
+
+    let playerX = 300;
+    const playerY = 580;
+    const playerWidth = 60;
+    const playerHeight = 10;
+    const playerSpeed = 5;
+
+    let keys = {};
+    let bricks = {};
+
+    function fill() {
+        for (let i = 0; i < columnCount; i++) {
+            bricks[i] = {};
+            for (let j = 0; j < rowCount; j++) {
+                bricks[i][j] = {x: 0, y: 0, status: 1};
+            }
+        }
+    }
+
+    window.addEventListener('keydown', function (e) {
+        keys[e.key] = true;
+        e.preventDefault();
+    });
+
+    window.addEventListener('keyup', function (e) {
+        delete keys[e.key];
+    });
+
+    function drawBall() {
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, ballRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = "#00AA00";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function drawPaddle() {
+        ctx.beginPath();
+        ctx.rect(playerX, playerY, playerWidth, playerHeight);
+        ctx.fillStyle = "#0000AA";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function drawBricks() {
+        for (let i = 0; i < columnCount; i++) {
+            for (let j = 0; j < rowCount; j++) {
+                if (bricks[i][j].status === 1) {
+                    let brickX = (i * (blockWidth + 5)) + 5;
+                    let brickY = (j * (blockHeight + 5)) + 5;
+                    bricks[i][j].x = brickX;
+                    bricks[i][j].y = brickY;
+                    ctx.beginPath();
+                    ctx.rect(brickX, brickY, blockWidth, blockHeight);
+                    ctx.fillStyle = '#AA0000';
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+        }
+    }
+
+    function collisionDetection() {
+        for (let i = 0; i < columnCount; i++) {
+            for (let j = 0; j < rowCount; j++) {
+                let brick = bricks[i][j];
+                if (brick.status === 1) {
+                    if (ballX > brick.x && ballX < brick.x + blockWidth && ballY > brick.y && ballY < brick.y + blockHeight) {
+                        verticalSpeed = -verticalSpeed;
+                        brick.status = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBricks();
+        drawPaddle();
+        drawBall();
+        collisionDetection();
+        if (ballX + horizontalSpeed > canvas.width - ballRadius || ballX + horizontalSpeed < ballRadius) {
+            horizontalSpeed = -horizontalSpeed;
+        }
+        if (ballY + verticalSpeed < ballRadius) {
+            verticalSpeed = -verticalSpeed;
+        } else if (ballY + verticalSpeed > playerY - ballRadius) {
+            if (ballX + ballRadius > playerX && ballX - ballRadius < playerX + playerWidth) {
+                if (ballY = ballY - playerHeight) {
+                    ballAngle = ((playerX + playerWidth / 2) - ballX) * 0.05;
+                    horizontalSpeed = horizontalSpeed + ballAngle;
+                    verticalSpeed = -verticalSpeed;
+                }
+            } else {
+                alert("GAME OVER");
+                return;
+            }
+        }
+        if ("Left" in keys || "ArrowLeft" in keys) {
+
+            if (playerX - playerSpeed > 0) {
+                playerX -= playerSpeed;
+            }
+        } else
+        if ("Right" in keys || "ArrowRight" in keys) {
+            if (playerX + playerWidth + playerSpeed < canvas.width) {
+                playerX += playerSpeed;
+            }
+        }
+        ballX += horizontalSpeed;
+        ballY += verticalSpeed;
+        window.requestAnimationFrame(draw);
+    }
+
+    fill();
+    draw();
+
+</script>
+</body>
+</html>
