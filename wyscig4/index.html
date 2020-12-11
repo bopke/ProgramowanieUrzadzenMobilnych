@@ -78,7 +78,11 @@
     const shotWidth = 10
     const shotSpeed = 10
     let lastShotTime = 0
-    const shotButton = document.getElementById("shot");
+    const shotButton = document.getElementById("shot")
+    const upButton = document.getElementById("up")
+    const downButton = document.getElementById("down")
+    const leftButton = document.getElementById("left")
+    const rightButton = document.getElementById("right")
     const button = document.getElementById("request")
     button.addEventListener("click", permissionsClick)
 
@@ -122,12 +126,56 @@
     shotButton.addEventListener('touchstart', handleShotStart, false)
     shotButton.addEventListener('touchend', handleShotEnd, false)
 
+    downButton.addEventListener('touchstart', handleDownStart, false)
+    downButton.addEventListener('touchend', handleDownEnd, false)
+
+    upButton.addEventListener('touchstart', handleUpStart, false)
+    upButton.addEventListener('touchend', handleUpEnd, false)
+
+    leftButton.addEventListener('touchstart', handleLeftStart, false)
+    leftButton.addEventListener('touchend', handleLeftEnd, false)
+
+    rightButton.addEventListener('touchstart', handleRightStart, false)
+    rightButton.addEventListener('touchend', handleRightEnd, false)
+
     function handleShotStart() {
         spacePressed = true
     }
 
     function handleShotEnd() {
         spacePressed = false
+    }
+
+    function handleUpStart() {
+        upPressed = true
+    }
+
+    function handleUpEnd() {
+        upPressed = false
+    }
+
+    function handleDownStart() {
+        downPressed = true
+    }
+
+    function handleDownEnd() {
+        downPressed = false
+    }
+
+    function handleLeftStart() {
+        leftPressed = true
+    }
+
+    function handleLeftEnd() {
+        leftPressed = false
+    }
+
+    function handleRightStart() {
+        rightPressed = true
+    }
+
+    function handleRightEnd() {
+        rightPressed = false
     }
 
     const shoot = function () {
