@@ -7,9 +7,14 @@
     <title>Wyscig4</title>
     <script>
         if (location.protocol !== "https:") {
-            location.href = "https:" + window.location.href.substring(window.location.protocol.length);
+            location.href = "https:" + window.location.href.substring(window.location.protocol.length)
         }
     </script>
+    <style>
+        * {
+            touch-action: manipulation
+        }
+    </style>
 </head>
 <body>
 <button id="request">Uprawnienia do obrotu</button>
