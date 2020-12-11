@@ -72,17 +72,13 @@
     button.addEventListener("click", permissionsClick);
 
     function permissionsClick() {
-        if (typeof (DeviceMotionEvent) !== "undefined" && typeof (DeviceMotionEvent.requestPermission) === "function") {
-            DeviceMotionEvent.requestPermission()
-                .then(response => {
-                    if (response === "granted") {
-                        window.addEventListener("deviceorientation", handleOrientationChange, true)
-                    }
-                })
-                .catch(console.error)
-        } else {
-            alert("DeviceMotionEvent is not defined")
-        }
+        DeviceMotionEvent.requestPermission()
+            .then(response => {
+                if (response === "granted") {
+                    window.addEventListener("deviceorientation", handleOrientationChange, true)
+                }
+            })
+            .catch(console.error)
     }
 
     function handleOrientationChange(event) {
