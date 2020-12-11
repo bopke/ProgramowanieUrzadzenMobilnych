@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
 
-    <title>Wyscig3</title>
+    <title>Wyscig4</title>
     <script>
         if (location.protocol !== "https:") {
             location.href = "https:" + window.location.href.substring(window.location.protocol.length);
@@ -15,7 +15,7 @@
 <button id="request">Uprawnienia do obrotu</button>
 <br/>
 <canvas id="canvas" width="800" height="600" style="border:1px solid #000000"></canvas>
-<button type="button" id="down" onclick="">v</button>
+<button type="button" id="down">v</button>
 <button type="button" id="up">^</button>
 <button type="button" id="left"><</button>
 <button type="button" id="right">></button>
@@ -68,8 +68,9 @@
     const shotWidth = 10
     const shotSpeed = 10
     let lastShotTime = 0
-    const button = document.getElementById("request");
-    button.addEventListener("click", permissionsClick);
+    const shotButton = document.getElementById("shot");
+    const button = document.getElementById("request")
+    button.addEventListener("click", permissionsClick)
 
     function permissionsClick() {
         if (typeof (DeviceMotionEvent) !== "undefined" && typeof (DeviceMotionEvent.requestPermission) === "function") {
@@ -108,6 +109,16 @@
         }
     }
 
+    shotButton.addEventListener('touchstart', handleShotStart, false)
+    shotButton.addEventListener('touchend', handleShotEnd, false)
+
+    function handleShotStart() {
+        spacePressed = true
+    }
+
+    function handleShotEnd() {
+        spacePressed = false
+    }
 
     const shoot = function () {
         shots.push({"x": playerX + playerWidth * 0.5, "y": playerY + shotSpeed})
