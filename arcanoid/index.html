@@ -13,6 +13,7 @@
     </style>
 </head>
 <body>
+<button id="request">Zacznij gre</button>
 <canvas id="canvas" width="800" height="600" style="border:1px solid #000000"></canvas>
 <div>
     strzałki lewo/prawo - ruch
@@ -39,8 +40,41 @@
     const playerHeight = 10;
     const playerSpeed = 5;
 
-    let keys = {};
+    let leftPressed = false;
+    let rightPressed = false;
+
     let bricks = {};
+
+    const button = document.getElementById("request")
+    button.addEventListener("click", permissionsClick)
+
+    function permissionsClick() {
+        if (typeof (DeviceMotionEvent) !== "undefined" && typeof (DeviceMotionEvent.requestPermission) === "function") {
+            DeviceMotionEvent.requestPermission()
+                .then(response => {
+                    if (response === "granted") {
+                        window.addEventListener("deviceorientation", handleOrientationChange, true)
+                    }
+                })
+                .catch(console.error)
+        } else {
+            window.addEventListener("deviceorientation", handleOrientationChange, true)
+        }
+        draw()
+    }
+
+    function handleOrientationChange(event) {
+        if (event.gamma >= -10 && event.gamma <= 10) {
+            leftPressed = false
+            rightPressed = false
+        } else if (event.gamma < -10) {
+            leftPressed = true
+            rightPressed = false
+        } else if (event.gamma > 10) {
+            leftPressed = false
+            rightPressed = true
+        }
+    }
 
     function fill() {
         for (let i = 0; i < columnCount; i++) {
@@ -52,12 +86,23 @@
     }
 
     window.addEventListener('keydown', function (e) {
-        keys[e.key] = true;
+        if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = true;
+        }
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = true;
+        }
         e.preventDefault();
     });
 
     window.addEventListener('keyup', function (e) {
-        delete keys[e.key];
+        if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = false;
+        }
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = false;
+        }
+        e.preventDefault();
     });
 
     function drawBall() {
@@ -131,13 +176,13 @@
                 return;
             }
         }
-        if ("Left" in keys || "ArrowLeft" in keys) {
+        if (leftPressed) {
 
             if (playerX - playerSpeed > 0) {
                 playerX -= playerSpeed;
             }
-        } else
-        if ("Right" in keys || "ArrowRight" in keys) {
+        }
+        if (rightPressed) {
             if (playerX + playerWidth + playerSpeed < canvas.width) {
                 playerX += playerSpeed;
             }
@@ -148,7 +193,6 @@
     }
 
     fill();
-    draw();
 
 </script>
 </body>
