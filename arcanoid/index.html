@@ -14,18 +14,20 @@
 </head>
 <body>
 <button id="request">Zacznij gre</button>
-<canvas id="canvas" width="800" height="600" style="border:1px solid #000000"></canvas>
+<canvas id="canvas" width="800" style="height: 90%;border:1px solid #000000"></canvas>
 <div>
     strzałki lewo/prawo - ruch
 </div>
 <script>
     const canvas = document.getElementById('canvas');
+    canvas.height = innerHeight - 80;
+    canvas.width = innerWidth - 30;
     const ctx = canvas.getContext('2d');
 
     const rowCount = 5;
     const columnCount = 10;
     const blockHeight = 25;
-    const blockWidth = 70;
+    const blockWidth = canvas.width / 10 - 6;
 
     const ballRadius = 7;
     let ballX = 300;
@@ -35,7 +37,7 @@
     let ballAngle = 0;
 
     let playerX = 300;
-    const playerY = 580;
+    const playerY = canvas.height - 20;
     const playerWidth = 60;
     const playerHeight = 10;
     const playerSpeed = 5;
