@@ -22,7 +22,7 @@
     const playerSize = 25;
     let playerX = -1;
     let playerY = -1;
-    const playerSpeed = 5;
+    const playerSpeed = 3;
 
     canvas.height = innerHeight - 80;
     canvas.width = innerWidth - 30;
@@ -245,28 +245,125 @@
         ctx.closePath();
     }
 
+    function checkPotentialCollision(direction) {
+        if (direction === "down") {
+            if (playerY + playerSize / 2 + playerSpeed > canvas.height) {
+                return true;
+            }
+            for (let i = 0; i < labirynth.length; i++) {
+                for (let j = 0; j < labirynth[i].length; j++) {
+                    if (labirynth[i][j] === wallField) {
+                        if ((i * tileSize < playerX + playerSize / 2 &&
+                            (1 + i) * tileSize > playerX - playerSize / 2 &&
+                            j * tileSize < playerY + playerSize / 2 + playerSpeed &&
+                            (1 + j) * tileSize > playerY - playerSize / 2)) {
+                            console.log("Collision on " + i + "x" + j)
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        if (direction === "up") {
+            if (playerY - playerSize / 2 - playerSpeed <= 0) {
+                return true;
+            }
+            for (let i = 0; i < labirynth.length; i++) {
+                for (let j = 0; j < labirynth[i].length; j++) {
+                    if (labirynth[i][j] === wallField) {
+                        if ((i * tileSize < playerX + playerSize / 2 &&
+                            (1 + i) * tileSize > playerX - playerSize / 2 &&
+                            j * tileSize < playerY + playerSize / 2 &&
+                            (1 + j) * tileSize > playerY - playerSize / 2 - playerSpeed)) {
+                            console.log("Collision on " + i + "x" + j)
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        if (direction === "left") {
+            if (playerX - playerSize / 2 - playerSpeed <= 0) {
+                return true;
+            }
+            for (let i = 0; i < labirynth.length; i++) {
+                for (let j = 0; j < labirynth[i].length; j++) {
+                    if (labirynth[i][j] === wallField) {
+                        if ((i * tileSize < playerX + playerSize / 2 &&
+                            (1 + i) * tileSize > playerX - playerSize / 2 - playerSpeed &&
+                            j * tileSize < playerY + playerSize / 2 &&
+                            (1 + j) * tileSize > playerY - playerSize / 2)) {
+                            console.log("Collision on " + i + "x" + j)
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        if (direction === "right") {
+            if (playerX + playerSize / 2 + playerSpeed > canvas.width) {
+                return true;
+            }
+            for (let i = 0; i < labirynth.length; i++) {
+                for (let j = 0; j < labirynth[i].length; j++) {
+                    if (labirynth[i][j] === wallField) {
+                        if ((i * tileSize < playerX + playerSize / 2 + playerSpeed &&
+                            (1 + i) * tileSize > playerX - playerSize / 2 &&
+                            j * tileSize < playerY + playerSize / 2 &&
+                            (1 + j) * tileSize > playerY - playerSize / 2)) {
+                            console.log("Collision on " + i + "x" + j)
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    function checkWin() {
+        for (let i = 0; i < labirynth.length; i++) {
+            for (let j = 0; j < labirynth[i].length; j++) {
+                if (labirynth[i][j] === winField) {
+                    if ((i * tileSize < playerX + playerSize / 2 + playerSpeed &&
+                        (1 + i) * tileSize > playerX - playerSize / 2 &&
+                        j * tileSize < playerY + playerSize / 2 &&
+                        (1 + j) * tileSize > playerY - playerSize / 2)) {
+                        console.log("Win on " + i + "x" + j)
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         fill();
 
-        if (leftPressed) {
-
-            if (playerX - playerSpeed > 0) {
-                playerX -= playerSpeed;
-            }
-        }
-        if (rightPressed) {
-            if (playerX + playerSize + playerSize < canvas.width) {
-                playerX += playerSpeed;
-            }
+        if (checkWin()) {
+            alert("Twoje jest wygranko!");
+            labirynth = generateLabirynth(canvas.width / 50, canvas.height / 50);
+            upPressed = false;
+            downPressed = false;
+            leftPressed = false;
+            rightPressed = false;
         }
 
-        if (upPressed) {
+        if (leftPressed && !checkPotentialCollision("left")) {
+            playerX -= playerSpeed;
+        }
+        if (rightPressed && !checkPotentialCollision("right")) {
+            playerX += playerSpeed;
+        }
+
+        if (upPressed && !checkPotentialCollision("up")) {
             playerY -= playerSpeed;
         }
 
-        if (downPressed) {
+        if (downPressed && !checkPotentialCollision("down")) {
             playerY += playerSpeed;
         }
 
