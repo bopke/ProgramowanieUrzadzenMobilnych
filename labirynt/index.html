@@ -116,11 +116,11 @@
             handleDownEnd();
             handleUpEnd();
         } else if (event.beta < -10) {
-            handleUpEnd();
-            handleDownStart();
-        } else if (event.beta > 10) {
             handleDownEnd();
             handleUpStart();
+        } else if (event.beta > 10) {
+            handleUpEnd();
+            handleDownStart();
         }
     }
 
