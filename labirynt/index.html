@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+
+    <title>Labirynt</title>
+
+    <style>
+        * {
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+<button id="request">Zacznij gre</button>
+<canvas id="canvas" width="800" style="height: 90%;border:1px solid #000000"></canvas>
+<script>
+    const canvas = document.getElementById("canvas")
+    const ctx = canvas.getContext("2d")
+    const tileSize = 50;
+    const playerSize = 25;
+    let playerX = -1;
+    let playerY = -1;
+    const playerSpeed = 5;
+
+    canvas.height = innerHeight - 80;
+    canvas.width = innerWidth - 30;
+    canvas.height -= canvas.height % tileSize;
+    canvas.width -= canvas.width % tileSize;
+
+
+    const button = document.getElementById("request")
+    button.addEventListener("click", permissionsClick)
+
+    function permissionsClick() {
+        if (typeof (DeviceMotionEvent) !== "undefined" && typeof (DeviceMotionEvent.requestPermission) === "function") {
+            DeviceMotionEvent.requestPermission()
+                .then(response => {
+                    if (response === "granted") {
+                        window.addEventListener("deviceorientation", handleOrientationChange, true)
+                    }
+                })
+                .catch(console.error)
+        } else {
+            if (window.innerWidth > window.innerHeight) {
+                window.addEventListener("deviceorientation", handleOrientationHorizontal, true);
+            } else {
+                window.addEventListener("deviceorientation", handleOrientation, true);
+            }
+        }
+        draw()
+    }
+
+    let rightPressed = false
+    let leftPressed = false
+    let upPressed = false
+    let downPressed = false
+    const emptyField = 0;
+    const wallField = 1;
+    const winField = 2;
+    const startField = 3;
+    let labirynth = generateLabirynth(canvas.width / 50, canvas.height / 50);
+
+    const keyDownHandler = function (e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = true
+        }
+        if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = true
+        }
+        if (e.key === "Up" || e.key === "ArrowUp") {
+            upPressed = true
+        }
+        if (e.key === "Down" || e.key === "ArrowDown") {
+            downPressed = true
+        }
+        if (e.key === ' ') {
+            spacePressed = true
+        }
+    }
+
+    const keyUpHandler = function (e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = false
+        }
+        if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = false
+        }
+        if (e.key === "Up" || e.key === "ArrowUp") {
+            upPressed = false
+        }
+        if (e.key === "Down" || e.key === "ArrowDown") {
+            downPressed = false
+        }
+        if (e.key === ' ') {
+            spacePressed = false
+        }
+    }
+    document.addEventListener("keydown", keyDownHandler, false)
+    document.addEventListener("keyup", keyUpHandler, false)
+
+
+    function handleOrientation(event) {
+        if (event.gamma >= -10 && event.gamma <= 10) {
+            handleLeftEnd();
+            handleRightEnd();
+        } else if (event.gamma < -10) {
+            handleRightEnd();
+            handleLeftStart();
+        } else if (event.gamma > 10) {
+            handleLeftEnd();
+            handleRightStart();
+        }
+        if (event.beta >= -10 && event.beta <= 10) {
+            handleDownEnd();
+            handleUpEnd();
+        } else if (event.beta < -10) {
+            handleUpEnd();
+            handleDownStart();
+        } else if (event.beta > 10) {
+            handleDownEnd();
+            handleUpStart();
+        }
+    }
+
+
+    function handleOrientationHorizontal(event) {
+        if (event.beta >= -10 && event.beta <= 10) {
+            handleLeftEnd();
+            handleRightEnd();
+        } else if (event.beta < -10) {
+            handleRightEnd();
+            handleLeftStart();
+        } else if (event.beta > 10) {
+            handleLeftEnd();
+            handleRightStart();
+        }
+        if (event.gamma >= -10 && event.gamma <= 10) {
+            handleUpEnd();
+            handleDownEnd();
+        } else if (event.gamma < -10) {
+            handleUpEnd();
+            handleDownStart();
+        } else if (event.gamma > 10) {
+            handleDownEnd();
+            handleUpStart();
+        }
+    }
+
+    function generateLabirynth(width, height) {
+        const pathField = 4;
+        let array = [];
+        // initiate array
+        for (let i = 0; i < width; i++) {
+            array.push([]);
+            for (let j = 0; j < height; j++) {
+                array[i].push(emptyField);
+            }
+        }
+
+        let startX = Math.floor(Math.random() * width);
+        let startY = Math.floor(Math.random() * height);
+        array[startX][startY] = startField;
+
+        playerX = startX * tileSize + tileSize / 2;
+        playerY = startY * tileSize + tileSize / 2;
+        let winX = startX;
+        let winY = startY;
+
+        while (winX === startX && winY === startY) {
+            winX = Math.floor(Math.random() * width);
+            winY = Math.floor(Math.random() * height);
+        }
+
+        array[winX][winY] = winField;
+        let directionalX = 1;
+        let directionalY = 1;
+
+        if (winX < startX) {
+            directionalX = -1;
+        }
+        if (winY < startY) {
+            directionalY = -1;
+        }
+
+        let pathX = startX;
+        let pathY = startY;
+
+        while (true) {
+            if (pathY === winY || (pathX !== winX && Math.random() > 0.5)) {
+                pathX += directionalX;
+            } else if (pathY !== winY) {
+                pathY += directionalY;
+            }
+            if (pathX === winX && pathY === winY) {
+                break;
+            }
+            array[pathX][pathY] = pathField;
+        }
+
+        for (let i = 0; i < width; i++) {
+            for (let j = 0; j < height; j++) {
+                if (array[i][j] === emptyField) {
+                    array[i][j] = (Math.random() > 0.5) ? wallField : emptyField;
+                }
+            }
+        }
+
+        for (let i = 0; i < width; i++) {
+            console.log(array[i]);
+            for (let j = 0; j < height; j++) {
+                if (array[i][j] === pathField) {
+                    array[i][j] = emptyField;
+                }
+            }
+        }
+        return array;
+    }
+
+    function fill() {
+        for (let i = 0; i < labirynth.length; i++) {
+            for (let j = 0; j < labirynth[i].length; j++) {
+                ctx.beginPath()
+                ctx.rect(i * tileSize, j * tileSize, tileSize, tileSize);
+                if (labirynth[i][j] === winField) {
+                    ctx.fillStyle = "#00AA00";
+                } else if (labirynth[i][j] === wallField) {
+                    ctx.fillStyle = "#583b00";
+                } else {
+                    ctx.fillStyle = "#BBBBBB";
+                }
+                ctx.fill()
+                ctx.closePath()
+            }
+        }
+        drawPlayer();
+    }
+
+    function drawPlayer() {
+        ctx.beginPath();
+        ctx.arc(playerX, playerY, playerSize / 2, 0, 2 * Math.PI);
+        ctx.fillStyle = "#0000AA";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        fill();
+
+        if (leftPressed) {
+
+            if (playerX - playerSpeed > 0) {
+                playerX -= playerSpeed;
+            }
+        }
+        if (rightPressed) {
+            if (playerX + playerSize + playerSize < canvas.width) {
+                playerX += playerSpeed;
+            }
+        }
+
+        if (upPressed) {
+            playerY -= playerSpeed;
+        }
+
+        if (downPressed) {
+            playerY += playerSpeed;
+        }
+
+        window.requestAnimationFrame(draw);
+    }
+
+    function handleUpStart() {
+        upPressed = true
+    }
+
+    function handleUpEnd() {
+        upPressed = false
+    }
+
+    function handleDownStart() {
+        downPressed = true
+    }
+
+    function handleDownEnd() {
+        downPressed = false
+    }
+
+    function handleLeftStart() {
+        leftPressed = true
+    }
+
+    function handleLeftEnd() {
+        leftPressed = false
+    }
+
+    function handleRightStart() {
+        rightPressed = true
+    }
+
+    function handleRightEnd() {
+        rightPressed = false
+    }
+
+
+    fill();
+</script>
+</body>
+</html>
