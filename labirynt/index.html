@@ -34,11 +34,16 @@
     button.addEventListener("click", permissionsClick)
 
     function permissionsClick() {
+        alert("permissions clicked")
         if (typeof (DeviceMotionEvent) !== "undefined" && typeof (DeviceMotionEvent.requestPermission) === "function") {
             DeviceMotionEvent.requestPermission()
                 .then(response => {
                     if (response === "granted") {
-                        window.addEventListener("deviceorientation", handleOrientationChange, true)
+                        if (window.innerWidth > window.innerHeight) {
+                            window.addEventListener("deviceorientation", handleOrientationHorizontal, true);
+                        } else {
+                            window.addEventListener("deviceorientation", handleOrientation, true);
+                        }
                     }
                 })
                 .catch(console.error)
