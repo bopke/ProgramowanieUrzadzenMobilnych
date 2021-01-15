@@ -102,6 +102,7 @@
 
 
     function handleOrientation(event) {
+        alert("hurra handle orientation")
         if (event.gamma >= -10 && event.gamma <= 10) {
             handleLeftEnd();
             handleRightEnd();
@@ -126,6 +127,7 @@
 
 
     function handleOrientationHorizontal(event) {
+        alert("hurra handle orientation horizontal")
         if (event.beta >= -10 && event.beta <= 10) {
             handleLeftEnd();
             handleRightEnd();
